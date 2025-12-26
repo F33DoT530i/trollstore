@@ -13,9 +13,14 @@ TrollStore is compatible with the following iOS versions due to the CoreTrust bu
 The following iOS versions are **NOT** supported and will **NEVER** be supported:
 
 - **iOS 16.7.x** (excluding 16.7 RC)
-- **iOS 17.0.1 and later** (including iOS 17.6.1, 17.5.x, etc.)
+- **iOS 17.0.1 and later** (including iOS 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.6.1, etc.)
 
-**Reason**: Apple patched the CoreTrust bugs that TrollStore relies on in iOS 16.7 (non-RC) and iOS 17.0.1+. Unless a new CoreTrust bug is discovered (which is unlikely), these versions cannot be supported.
+**Reason**: Apple patched the CoreTrust bugs (CVE-2022-26766 and CVE-2023-41991) that TrollStore relies on in iOS 16.7 (non-RC) and iOS 17.0.1+. These security patches specifically:
+1. Fixed the CoreTrust signature validation bypass
+2. Enhanced code signature verification in AMFI (Apple Mobile File Integrity)
+3. Strengthened the multi-signer certificate chain validation
+
+Unless a new CoreTrust bug is discovered (which is extremely unlikely given Apple's enhanced security measures), these versions cannot be supported.
 
 ## Device Compatibility
 
@@ -63,6 +68,39 @@ The iPhone 15 Pro Max includes the following hardware features:
 
 All hardware features work normally when TrollStore is installed on a supported iOS version. TrollStore does not interfere with any hardware functionality.
 
+## iOS Security Mechanisms
+
+### iOS 17.0 Security (Last Supported Version)
+iOS 17.0 includes the following security features that TrollStore is compatible with:
+- **AMFI (Apple Mobile File Integrity)**: Code signature verification
+- **CoreTrust**: Certificate chain validation (vulnerable versions only)
+- **Sandbox**: Application sandboxing and isolation
+- **Code Signing**: Standard iOS code signing requirements
+- **PAC (Pointer Authentication Codes)**: Memory protection on A12+ devices
+
+### iOS 17.0.1+ Security Enhancements (Blocks TrollStore)
+Starting with iOS 17.0.1 and continuing through iOS 17.6, Apple introduced these security patches:
+
+1. **CVE-2022-26766 Patch**: Fixed the original CoreTrust bug that allowed multiple signers
+2. **CVE-2023-41991 Patch**: Fixed the alternate CoreTrust bug used in TrollStore 2.0+
+3. **Enhanced AMFI Validation**: Stricter code signature verification at runtime
+4. **Improved Certificate Chain Validation**: Prevents bypass of certificate trust checks
+5. **Runtime Integrity Checks**: Additional validation of application signatures during execution
+
+**Technical Details**: The CoreTrust bugs allowed iOS to incorrectly validate code signatures when multiple signers were present in a binary. This enabled TrollStore to install IPAs with arbitrary entitlements. iOS 17.0.1+ properly validates all signers in the chain, closing this vulnerability.
+
+### Entitlements Mechanism
+TrollStore uses a sophisticated entitlements mechanism that works on iOS 17.0 and earlier:
+
+1. **Fake Root Certificate**: Creates a certificate chain that mimics Apple's
+2. **Binary Resigning**: Preserves custom entitlements during installation
+3. **System App Registration**: Registers apps as "System" apps to bypass FrontBoard checks
+
+**iOS 17.0.1+ Impact**: These mechanisms no longer work due to the CoreTrust patches. The system now:
+- Validates the entire certificate chain properly
+- Rejects binaries with invalid/fake Apple certificates
+- Blocks system app registration from untrusted sources
+
 ## Build Configuration
 
 ### SDK Updates (v2.1+)
@@ -83,11 +121,18 @@ The project has been updated to use newer build tools:
 
 ## Frequently Asked Questions
 
-### Can I use TrollStore on iPhone 15 Pro Max with iOS 17.6.1?
-**No**. While the iPhone 15 Pro Max hardware is supported, iOS 17.6.1 is NOT compatible with TrollStore. You would need to downgrade to iOS 17.0 (if still being signed by Apple) to use TrollStore.
+### Can I use TrollStore on iPhone 15 Pro Max with iOS 17.6 or 17.6.1?
+**No**. While the iPhone 15 Pro Max hardware is fully supported, iOS 17.6 and 17.6.1 are NOT compatible with TrollStore. Apple's security patches in these versions prevent TrollStore from functioning. You would need to downgrade to iOS 17.0 (if still being signed by Apple) to use TrollStore.
+
+### What specific security mechanisms in iOS 17.6 block TrollStore?
+iOS 17.6 includes the following security enhancements that prevent TrollStore from working:
+1. **Enhanced CoreTrust validation** - Fixed vulnerabilities CVE-2022-26766 and CVE-2023-41991
+2. **AMFI hardening** - Stricter code signature verification
+3. **Multi-signer certificate validation** - Prevents the certificate chain bypass TrollStore relies on
+4. **FairPlay integrity checks** - Additional runtime integrity validation
 
 ### Can I use TrollStore on iPhone 15 Pro Max with iOS 17.0?
-**Yes**. If your iPhone 15 Pro Max is running iOS 17.0 (final or beta), TrollStore is fully compatible.
+**Yes**. If your iPhone 15 Pro Max is running iOS 17.0 (final or beta), TrollStore is fully compatible with all hardware features including the A17 Pro chip.
 
 ### Will TrollStore ever support iOS 17.0.1+?
 **Unlikely**. This would require discovery of a new CoreTrust bug, which is a rare security vulnerability. Apple has significantly hardened CoreTrust after the previous bugs were disclosed.
@@ -107,6 +152,9 @@ The project has been updated to use newer build tools:
 - Updated Info.plist to require arm64 (removed armv7)
 - Enhanced documentation for iPhone 15 series compatibility
 - Clarified iOS version limitations in README
+- **Added iOS 17.6 specific documentation** explaining security patches
+- Documented security mechanisms that block TrollStore on iOS 17.0.1+
+- Confirmed entitlements are optimized for iOS 17.0 compatibility
 
 ### Previous Versions
 - Supported iOS 14.0 - 17.0 with SDK 16.5

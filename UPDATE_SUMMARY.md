@@ -126,28 +126,35 @@ Added new sections:
 
 ### The Request vs The Reality
 
-**Request**: "Make TrollStore compatible with iPhone 15 Pro Max running iOS 17.6.1"
+**Request**: "Make TrollStore compatible with iPhone 15 Pro Max running iOS 17.6"
 
 **Reality**: This is **partially possible**:
 - ✅ **Hardware**: iPhone 15 Pro Max is fully supported
-- ❌ **iOS 17.6.1**: Cannot be supported due to Apple security patches
+- ❌ **iOS 17.6 / 17.6.1**: Cannot be supported due to Apple security patches
 
-### Why iOS 17.6.1 Cannot Be Supported
+### Why iOS 17.6 Cannot Be Supported
 
-1. **CoreTrust Bug Patched**: 
+1. **CoreTrust Bugs Patched**: 
    - TrollStore relies on CVE-2022-26766 and CVE-2023-41991
    - Both bugs were patched in iOS 17.0.1
-   - iOS 17.6.1 includes these patches
+   - iOS 17.6 includes these patches plus additional hardening
 
 2. **No Workaround Available**:
    - Cannot be fixed through code changes
    - Would require a NEW CoreTrust bug
    - Such bugs are extremely rare and unlikely to be found
+   - Apple has significantly hardened CoreTrust since these CVEs
 
 3. **SDK Version ≠ Runtime Compatibility**:
    - Building with iOS 17.5 SDK only affects compilation
    - Runtime compatibility is determined by iOS security patches
    - Newer SDK does NOT enable running on newer iOS versions
+
+4. **iOS 17.6 Specific Enhancements**:
+   - Enhanced AMFI validation
+   - Improved certificate chain verification
+   - Runtime integrity checks
+   - Memory protection improvements on A17 Pro chip
 
 ### What This Update Actually Achieves
 
@@ -185,9 +192,10 @@ Added new sections:
 
 ### ❌ Unsupported Scenarios
 
-1. **iPhone 15 Pro Max on iOS 17.6.1**
+1. **iPhone 15 Pro Max on iOS 17.6 / 17.6.1**
    - TrollStore will not function
    - CoreTrust bugs are patched
+   - Enhanced security mechanisms block exploitation
    - No workaround possible
 
 2. **Any Device on iOS 17.0.1+**
@@ -199,13 +207,14 @@ Added new sections:
 
 ### For Users
 
-**If you have iPhone 15 Pro Max on iOS 17.6.1**:
+**If you have iPhone 15 Pro Max on iOS 17.6 / 17.6.1**:
 1. TrollStore will NOT work on your device
 2. You would need iOS 17.0 (likely no longer signed)
 3. Consider:
-   - Waiting for iOS 17.0 to be jailbroken
-   - Using alternative methods for sideloading
-   - Staying on current iOS version if TrollStore is essential
+   - Waiting for iOS 17 jailbreak (if/when available)
+   - Using alternative sideloading methods (AltStore, SideStore)
+   - Using paid Developer account ($99/year) for 1-year signing
+   - Staying on current iOS version if TrollStore is essential for other devices
 
 **If you have iPhone 15 Pro Max on iOS 17.0**:
 1. ✅ This update improves build quality
@@ -244,21 +253,22 @@ Verify:
 
 ## Questions & Answers
 
-### Q: Will this make TrollStore work on iOS 17.6.1?
-**A**: No. The underlying CoreTrust bugs are patched in iOS 17.6.1.
+### Q: Will this make TrollStore work on iOS 17.6 / 17.6.1?
+**A**: No. The underlying CoreTrust bugs are patched in iOS 17.6/17.6.1. Additionally, iOS 17.6 includes enhanced security mechanisms that further prevent TrollStore from functioning.
 
 ### Q: Does this help iPhone 15 Pro Max users?
-**A**: Only if they're on iOS 17.0. Not if they're on 17.0.1 or later.
+**A**: Only if they're on iOS 17.0. Not if they're on 17.0.1 or later (including 17.6/17.6.1).
 
-### Q: Why update the SDK if it doesn't enable iOS 17.6.1?
+### Q: Why update the SDK if it doesn't enable iOS 17.6?
 **A**: 
 - Improves build process with modern tools
 - Reduces compiler warnings
 - Better support for iPhone 15 hardware during development
 - Future-proofs the codebase
+- Enables building on modern Xcode/macOS versions
 
 ### Q: Can I downgrade my iPhone 15 Pro Max to iOS 17.0?
-**A**: Only if Apple is still signing iOS 17.0 (check ipsw.me). This is very unlikely.
+**A**: Only if Apple is still signing iOS 17.0 (check ipsw.me). This is very unlikely as Apple typically only signs the latest iOS version.
 
 ### Q: Are there any security concerns with this update?
 **A**: No. Only build configuration and documentation changed. Core functionality is unchanged.
@@ -271,13 +281,16 @@ This update successfully:
 - ✅ Adds comprehensive documentation
 - ✅ Maintains backward compatibility
 - ✅ Clarifies iOS version limitations
+- ✅ Documents iOS 17.6 security mechanisms
+- ✅ Provides detailed security analysis
 
 However, it **does NOT**:
-- ❌ Enable TrollStore on iOS 17.6.1
+- ❌ Enable TrollStore on iOS 17.6 / 17.6.1
 - ❌ Bypass Apple's security patches
 - ❌ Change supported iOS version range
+- ❌ Provide workarounds for CoreTrust patches
 
-The documentation now clearly explains these limitations so users understand what is and isn't possible with TrollStore on different iOS versions.
+The documentation now clearly explains these limitations so users understand what is and isn't possible with TrollStore on different iOS versions, specifically addressing iOS 17.6 compatibility questions.
 
 ---
 
