@@ -1,0 +1,241 @@
+name: Build TrollStore IPA
+
+on:
+  push:
+    branches:
+      - main
+      - copilot/build-trollstore-ipa-file
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build TrollStore for iOS 17
+    runs-on: macos-13
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
+      - name: Cache InstallerVictim IPA
+        id: cache-victim
+        uses: actions/cache@v3
+        with:
+          path: Victim/InstallerVictim.ipa
+          key: installer-victim-ipa-${{ hashFiles('Victim/README.md') }}
+          
+      - name: Check for InstallerVictim.ipa
+        id: check-victim
+        run: |
+          if [ -f "Victim/InstallerVictim.ipa" ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "✓ InstallerVictim.ipa found"
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "❌ InstallerVictim.ipa not found"
+            echo ""
+            echo "::warning::InstallerVictim.ipa is required but not provided."
+            echo "::warning::This file must be extracted from an iOS IPSW or obtained separately."
+            echo "::warning::See BUILD_IPA_GUIDE.md for instructions."
+            echo ""
+            echo "To enable automated builds, you can:"
+            echo "1. Manually add InstallerVictim.ipa to the Victim/ directory"
+            echo "2. Create a repository secret with the IPA content"
+            echo "3. Upload it as a GitHub artifact for caching"
+          fi
+          
+      - name: Select Xcode version
+        if: steps.check-victim.outputs.found == 'true'
+        run: sudo xcode-select -s /Applications/Xcode_15.0.app/Contents/Developer
+        
+      - name: Show Xcode version
+        if: steps.check-victim.outputs.found == 'true'
+        run: xcodebuild -version
+        
+      - name: Show available SDKs
+        if: steps.check-victim.outputs.found == 'true'
+        run: xcodebuild -showsdks
+        
+      - name: Install Homebrew dependencies
+        if: steps.check-victim.outputs.found == 'true'
+        run: |
+          brew install libarchive
+          brew install openssl@3
+          brew install pkg-config
+          brew install ldid
+          
+      - name: Install Theos
+        if: steps.check-victim.outputs.found == 'true'
+        run: |
+          git clone --recursive https://github.com/theos/theos.git $HOME/theos
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+          
+      - name: Setup environment
+        if: steps.check-victim.outputs.found == 'true'
+        run: |
+          echo "PATH=$HOME/theos/bin:$PATH" >> $GITHUB_ENV
+          export PKG_CONFIG_PATH="$(brew --prefix openssl@3)/lib/pkgconfig:$PKG_CONFIG_PATH"
+          echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          
+      - name: Verify Theos installation
+        if: steps.check-victim.outputs.found == 'true'
+        run: |
+          echo "THEOS path: $THEOS"
+          ls -la $THEOS
+          
+      - name: Generate signing certificate
+        if: steps.check-victim.outputs.found == 'true'
+        run: |
+          cd Victim
+          chmod +x make_cert.sh
+          ./make_cert.sh MRLQS75089
+          cd ..
+          
+      - name: Clean previous builds
+        if: steps.check-victim.outputs.found == 'true'
+        run: make clean
+        
+      - name: Build TrollStore
+        if: steps.check-victim.outputs.found == 'true'
+        run: |
+          make -j$(sysctl -n hw.ncpu)
+          
+      - name: Verify build outputs
+        if: steps.check-victim.outputs.found == 'true'
+        run: |
+          echo "Checking build directory..."
+          ls -lah _build/
+          echo ""
+          echo "Checking TrollStore.tar..."
+          if [ -f "_build/TrollStore.tar" ]; then
+            echo "✓ TrollStore.tar exists ($(du -h _build/TrollStore.tar | cut -f1))"
+          else
+            echo "✗ TrollStore.tar not found"
+            exit 1
+          fi
+          echo ""
+          echo "Checking TrollHelper IPAs..."
+          if [ -f "_build/TrollHelper_iOS15.ipa" ]; then
+            echo "✓ TrollHelper_iOS15.ipa exists ($(du -h _build/TrollHelper_iOS15.ipa | cut -f1))"
+          else
+            echo "✗ TrollHelper_iOS15.ipa not found"
+          fi
+          if [ -f "_build/TrollHelper_arm64e.ipa" ]; then
+            echo "✓ TrollHelper_arm64e.ipa exists ($(du -h _build/TrollHelper_arm64e.ipa | cut -f1))"
+          else
+            echo "✗ TrollHelper_arm64e.ipa not found"
+          fi
+          
+      - name: Verify IPA file sizes
+        if: steps.check-victim.outputs.found == 'true'
+        run: |
+          echo "Checking IPA file sizes against Apple's limits..."
+          MAX_SIZE=$((4 * 1024 * 1024 * 1024))  # 4GB limit
+          for ipa in _build/*.ipa; do
+            if [ -f "$ipa" ]; then
+              SIZE=$(stat -f%z "$ipa")
+              SIZE_MB=$((SIZE / 1024 / 1024))
+              echo "$(basename $ipa): ${SIZE_MB}MB"
+              if [ $SIZE -gt $MAX_SIZE ]; then
+                echo "ERROR: $(basename $ipa) exceeds 4GB limit"
+                exit 1
+              fi
+            fi
+          done
+          echo "✓ All IPA files are within size limits"
+          
+      - name: Test IPA structure
+        if: steps.check-victim.outputs.found == 'true'
+        run: |
+          echo "Verifying IPA structure..."
+          for ipa in _build/*.ipa; do
+            if [ -f "$ipa" ]; then
+              echo "Testing $(basename $ipa)..."
+              unzip -t "$ipa" > /dev/null 2>&1
+              if [ $? -eq 0 ]; then
+                echo "✓ $(basename $ipa) is a valid zip archive"
+              else
+                echo "✗ $(basename $ipa) is corrupted"
+                exit 1
+              fi
+            fi
+          done
+          
+      - name: Upload TrollStore.tar
+        if: steps.check-victim.outputs.found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: TrollStore-tar
+          path: _build/TrollStore.tar
+          retention-days: 30
+          
+      - name: Upload TrollHelper iOS15 IPA
+        if: steps.check-victim.outputs.found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: TrollHelper-iOS15-IPA
+          path: _build/TrollHelper_iOS15.ipa
+          retention-days: 30
+          
+      - name: Upload TrollHelper arm64e IPA
+        if: steps.check-victim.outputs.found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: TrollHelper-arm64e-IPA
+          path: _build/TrollHelper_arm64e.ipa
+          retention-days: 30
+          
+      - name: Upload all build artifacts
+        if: steps.check-victim.outputs.found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: TrollStore-Complete-Build
+          path: _build/
+          retention-days: 30
+          
+      - name: Generate build summary
+        if: always()
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check-victim.outputs.found }}" != "true" ]; then
+            echo "### ⚠️ Build Skipped" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason**: InstallerVictim.ipa not found" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The TrollStore build requires a victim IPA file (typically Tips.app) that is not included in the repository." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**To enable builds:**" >> $GITHUB_STEP_SUMMARY
+            echo "1. Extract Tips.app from an iOS IPSW file" >> $GITHUB_STEP_SUMMARY
+            echo "2. Package it as an IPA" >> $GITHUB_STEP_SUMMARY
+            echo "3. Place it at \`Victim/InstallerVictim.ipa\`" >> $GITHUB_STEP_SUMMARY
+            echo "4. Commit and push to trigger a new build" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "See [BUILD_IPA_GUIDE.md](BUILD_IPA_GUIDE.md) for detailed instructions." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Successfully built TrollStore for iOS 17!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "#### Build Outputs:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            for file in _build/*; do
+              if [ -f "$file" ]; then
+                SIZE=$(du -h "$file" | cut -f1)
+                echo "- $(basename $file): $SIZE" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "#### Compatibility Notes:" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ **iPhone 15 Pro Max**: Hardware fully supported" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ **iOS 17.0**: Supported" >> $GITHUB_STEP_SUMMARY
+            echo "- ❌ **iOS 17.0.1+**: NOT supported (CoreTrust bug patched)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "#### Supported iOS Versions:" >> $GITHUB_STEP_SUMMARY
+            echo "- iOS 14.0 beta 2 - 16.6.1" >> $GITHUB_STEP_SUMMARY
+            echo "- iOS 16.7 RC (20H18)" >> $GITHUB_STEP_SUMMARY
+            echo "- iOS 17.0" >> $GITHUB_STEP_SUMMARY
+          fi
