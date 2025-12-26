@@ -1,0 +1,168 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g., v2.1.0)'
+        required: true
+        type: string
+      release_name:
+        description: 'Release name'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-and-release:
+    name: Build and Create Release
+    runs-on: macos-13
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
+      - name: Check for InstallerVictim.ipa
+        id: check-victim
+        run: |
+          if [ -f "Victim/InstallerVictim.ipa" ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "✓ InstallerVictim.ipa found"
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "❌ InstallerVictim.ipa not found - cannot create release"
+            echo "::error::InstallerVictim.ipa is required to build TrollStore"
+            exit 1
+          fi
+          
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_15.0.app/Contents/Developer
+        
+      - name: Install dependencies
+        run: |
+          brew install libarchive openssl@3 pkg-config ldid
+          
+      - name: Install Theos
+        run: |
+          git clone --recursive https://github.com/theos/theos.git $HOME/theos
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+          
+      - name: Setup environment
+        run: |
+          echo "PATH=$HOME/theos/bin:$PATH" >> $GITHUB_ENV
+          export PKG_CONFIG_PATH="$(brew --prefix openssl@3)/lib/pkgconfig:$PKG_CONFIG_PATH"
+          echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
+          
+      - name: Generate signing certificate
+        run: |
+          cd Victim
+          chmod +x make_cert.sh
+          ./make_cert.sh MRLQS75089
+          cd ..
+          
+      - name: Build TrollStore
+        run: |
+          make clean
+          make -j$(sysctl -n hw.ncpu)
+          
+      - name: Verify builds
+        run: |
+          ls -lah _build/
+          
+      - name: Create release notes
+        run: |
+          cat > release_notes.md << 'EOF'
+          ## TrollStore Release - iPhone 15 Pro Max Compatible
+          
+          ### 📦 Installation Files
+          
+          - **TrollStore.tar** - Main TrollStore application for updating existing installations
+          - **TrollHelper_iOS15.ipa** - Installer for iOS 15+ devices (arm64)
+          - **TrollHelper_arm64e.ipa** - Installer for arm64e devices (iPhone XS and newer)
+          
+          ### ✅ Supported Devices
+          
+          - **iPhone 15 Pro Max** - Fully supported hardware
+          - **All iPhone models** from iPhone 6S and later
+          
+          ### ✅ Supported iOS Versions
+          
+          - iOS 14.0 beta 2 through iOS 16.6.1
+          - iOS 16.7 RC (20H18)
+          - iOS 17.0 (final and betas)
+          
+          ### ❌ Unsupported iOS Versions
+          
+          - iOS 16.7.x (excluding 16.7 RC)
+          - iOS 17.0.1 and later (including iOS 17.6.1)
+          
+          **Important**: The CoreTrust bugs that TrollStore relies on were patched by Apple in iOS 16.7 and iOS 17.0.1. These versions cannot and will never be supported unless a new CoreTrust bug is discovered.
+          
+          ### 📱 iPhone 15 Pro Max Notes
+          
+          - ✅ Hardware is fully supported
+          - ⚠️ Only works on iOS 17.0, NOT on iOS 17.0.1 or later
+          - If your device is on iOS 17.0.1+, TrollStore will not function
+          
+          ### 🔧 Installation Instructions
+          
+          For detailed installation instructions, please visit:
+          - [iOS CFW Guide - Installing TrollStore](https://ios.cfw.guide/installing-trollstore)
+          
+          ### 🏗️ Build Configuration
+          
+          - SDK Version: iOS 17.5
+          - Minimum Deployment Target: iOS 14.0
+          - Architectures: arm64, arm64e
+          - Built with Xcode 15.0
+          
+          ### 📚 Documentation
+          
+          - See [BUILD.md](BUILD.md) for build instructions
+          - See [COMPATIBILITY.md](COMPATIBILITY.md) for detailed compatibility information
+          - See [README.md](README.md) for general information
+          
+          ---
+          
+          **⚠️ Disclaimer**: TrollStore is provided as-is. Use at your own risk. Always backup your device before installation.
+          EOF
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.tag_name }}
+          name: ${{ inputs.release_name }}
+          body_path: release_notes.md
+          prerelease: ${{ inputs.prerelease }}
+          files: |
+            _build/TrollStore.tar
+            _build/TrollHelper_iOS15.ipa
+            _build/TrollHelper_arm64e.ipa
+            _build/*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Release summary
+        run: |
+          echo "## Release Created Successfully! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Release Details:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag**: ${{ inputs.tag_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Name**: ${{ inputs.release_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pre-release**: ${{ inputs.prerelease }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Artifacts Uploaded:" >> $GITHUB_STEP_SUMMARY
+          for file in _build/TrollStore.tar _build/TrollHelper_*.ipa _build/*.deb; do
+            if [ -f "$file" ]; then
+              SIZE=$(du -h "$file" | cut -f1)
+              echo "- $(basename $file): $SIZE" >> $GITHUB_STEP_SUMMARY
+            fi
+          done

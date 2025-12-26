@@ -140,6 +140,29 @@ make
 
 The build process will create several outputs in the `_build` directory including installer IPAs for different iOS versions and architectures.
 
+**Note**: Building requires a victim IPA file (`Victim/InstallerVictim.ipa`) which is not included in the repository. See [BUILD_IPA_GUIDE.md](BUILD_IPA_GUIDE.md) for detailed build instructions and [Victim/README.md](Victim/README.md) for how to obtain this file.
+
+### Building with GitHub Actions
+
+This repository includes GitHub Actions workflows for automated building:
+
+- **Build Workflow**: Automatically builds TrollStore on every push
+  - Runs on macOS with Xcode 15
+  - Creates downloadable build artifacts
+  - Verifies IPA file integrity and size limits
+
+- **Release Workflow**: Creates GitHub releases with IPA files
+  - Manual trigger via Actions tab
+  - Builds and uploads all artifacts to a release
+  - Generates release notes automatically
+
+To use these workflows:
+1. Provide `InstallerVictim.ipa` in the `Victim/` directory (see documentation)
+2. Push to trigger automatic builds, or
+3. Use Actions → "Create Release" for versioned releases
+
+See [BUILD_IPA_GUIDE.md](BUILD_IPA_GUIDE.md) for complete instructions on building and releasing TrollStore IPAs.
+
 ## Credits and Further Reading
 
 [@alfiecg_dev](https://twitter.com/alfiecg_dev/) - Found the CoreTrust bug that allows TrollStore to work through patchdiffing and worked on automating the bypass.
