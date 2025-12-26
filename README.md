@@ -6,12 +6,19 @@ It works because of an AMFI/CoreTrust bug where iOS does not correctly verify co
 
 Supported versions: 14.0 beta 2 - 16.6.1, 16.7 RC (20H18), 17.0
 
+**Important**: iOS 17.0.1 and later (including iOS 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.6.1) are NOT supported due to Apple's security patches.
+
 ## Device Compatibility
 
 ### iPhone 15 Pro Max
 TrollStore has been updated to support building with iOS 17.5 SDK for compatibility with newer hardware including iPhone 15 Pro Max (A17 Pro chip). However, **iOS version restrictions still apply** - the app will only function on supported iOS versions listed above.
 
-**Important**: While the project can be built targeting iOS 17.5+ SDK, this does **NOT** enable TrollStore functionality on iOS 17.0.1 or later (including iOS 17.6.1). The underlying CoreTrust bug that TrollStore relies on was patched by Apple in iOS 17.0.1.
+**Important**: 
+- ✅ **Hardware**: iPhone 15 Pro Max is fully supported
+- ❌ **iOS 17.6 / 17.6.1**: NOT supported due to CoreTrust patches (CVE-2022-26766, CVE-2023-41991)
+- ✅ **iOS 17.0**: Fully supported on iPhone 15 Pro Max
+
+While the project can be built targeting iOS 17.5+ SDK, this does **NOT** enable TrollStore functionality on iOS 17.0.1 or later (including iOS 17.6, 17.6.1). The underlying CoreTrust bugs that TrollStore relies on were patched by Apple in iOS 17.0.1.
 
 ### Architecture Support
 - arm64: All supported devices
@@ -21,7 +28,7 @@ TrollStore has been updated to support building with iOS 17.5 SDK for compatibil
 
 For installing TrollStore, refer to the guides at [ios.cfw.guide](https://ios.cfw.guide/installing-trollstore)
 
-16.7.x (excluding 16.7 RC) and 17.0.1+ will NEVER be supported (unless a third CoreTrust bug is discovered, which is unlikely).
+**iOS 17.6 Note**: iOS 16.7.x (excluding 16.7 RC) and 17.0.1+ (including iOS 17.6, 17.6.1) will NEVER be supported unless a third CoreTrust bug is discovered, which is unlikely given Apple's enhanced security measures in these versions.
 
 ## Updating TrollStore
 
