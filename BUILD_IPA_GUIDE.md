@@ -83,7 +83,7 @@ The easiest way to build TrollStore is using GitHub Actions:
 
 4. **Clone Repository**
    ```bash
-   git clone --recursive https://github.com/F33DoT530i/trollstore.git
+   git clone --recursive https://github.com/<username>/trollstore.git
    cd trollstore
    ```
 

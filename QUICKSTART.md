@@ -14,7 +14,7 @@ This is a quick reference for building TrollStore IPA files. For detailed instru
 
 ```bash
 # 1. Clone repository
-git clone --recursive https://github.com/F33DoT530i/trollstore.git
+git clone --recursive https://github.com/<username>/trollstore.git
 cd trollstore
 
 # 2. Run setup script

@@ -23,7 +23,7 @@ jobs:
           
       - name: Cache InstallerVictim IPA
         id: cache-victim
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: Victim/InstallerVictim.ipa
           key: installer-victim-ipa-${{ hashFiles('Victim/README.md') }}
