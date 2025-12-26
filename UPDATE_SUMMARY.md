@@ -254,7 +254,7 @@ Verify:
 ## Questions & Answers
 
 ### Q: Will this make TrollStore work on iOS 17.6 / 17.6.1?
-**A**: No. The underlying CoreTrust bugs are patched in iOS 17.6/17.6.1. Additionally, iOS 17.6 includes enhanced security mechanisms that further prevent TrollStore from functioning.
+**A**: No. The underlying CoreTrust bugs (CVE-2022-26766 and CVE-2023-41991) are patched in iOS 17.6/17.6.1. Additionally, iOS 17.6 includes enhanced security mechanisms that further prevent TrollStore from functioning.
 
 ### Q: Does this help iPhone 15 Pro Max users?
 **A**: Only if they're on iOS 17.0. Not if they're on 17.0.1 or later (including 17.6/17.6.1).

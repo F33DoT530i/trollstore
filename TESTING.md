@@ -15,7 +15,7 @@ This guide provides comprehensive testing procedures for TrollStore on iOS 17.0 
 
 ### Unsupported Devices (Do Not Test)
 
-- ❌ Any device on iOS 17.0.1 or later (17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.6.1)
+- ❌ Any device on iOS 17.0.1+ (including iOS 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, etc.)
 - ❌ Any device on iOS 16.7.x (except 16.7 RC)
 
 ### Build Requirements
@@ -516,6 +516,8 @@ For each TrollStore update, verify:
 #!/bin/bash
 # Basic TrollStore test script
 # Run on macOS with device connected
+
+set -euo pipefail  # Exit on error, undefined variables, and pipe failures
 
 echo "TrollStore Build and Basic Tests"
 echo "================================"

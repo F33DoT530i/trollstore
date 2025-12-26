@@ -223,11 +223,11 @@ For TrollStore to work on iOS 17.6, one of the following would be needed:
 
 ### Why New Exploits Are Unlikely
 
-1. **Security Investments**: Apple has significantly increased security team
-2. **Bug Bounty Program**: High rewards for CoreTrust bugs
-3. **Fuzzing**: Extensive automated testing of security components
-4. **Multiple Validation Layers**: Defense in depth approach
-5. **Runtime Checks**: Dynamic validation prevents bypasses
+1. **Security Investments**: Apple has significantly increased security team size and resources
+2. **Bug Bounty Program**: Apple offers up to $1 million USD for iOS kernel exploits and significant rewards (typically $100,000+) for CoreTrust vulnerabilities through their Security Bounty program
+3. **Fuzzing**: Extensive automated testing of security components using advanced fuzzing techniques
+4. **Multiple Validation Layers**: Defense in depth approach with multiple validation checkpoints
+5. **Runtime Checks**: Dynamic validation prevents bypasses at execution time
 
 ## Testing and Verification
 
