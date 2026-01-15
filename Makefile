@@ -1,6 +1,6 @@
 TOPTARGETS := all clean update
 
-$(TOPTARGETS): pre_build make_fastPathSign make_roothelper make_trollstore make_trollhelper_embedded make_trollhelper_package assemble_trollstore build_installer15 build_installer64e make_trollstore_lite
+$(TOPTARGETS): pre_build make_fastPathSign make_roothelper make_trollstore make_trollhelper_embedded make_trollhelper_package assemble_trollstore build_installer15 build_installer64e make_trollstore_lite make_trollstorespawnroot
 
 pre_build:
 	@rm -rf ./_build 2>/dev/null || true
@@ -85,9 +85,15 @@ make_trollstore_lite:
 	@cp ./RootHelper/.theos/obj/trollstorehelper_lite ./TrollStoreLite/Resources/trollstorehelper
 	@$(MAKE) -C ./TrollStoreLite package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
 
+make_trollstorespawnroot:
+	@$(MAKE) -C ./TrollStoreSpawnRoot FINALPACKAGE=1 package
+
 else
 make_trollstore_lite:
 	@$(MAKE) -C ./TrollStoreLite $(MAKECMDGOALS)
+
+make_trollstorespawnroot:
+	@$(MAKE) -C ./TrollStoreSpawnRoot $(MAKECMDGOALS)
 endif
 
-.PHONY: $(TOPTARGETS) pre_build assemble_trollstore make_trollhelper_package make_trollhelper_embedded build_installer15 build_installer64e
+.PHONY: $(TOPTARGETS) pre_build assemble_trollstore make_trollhelper_package make_trollhelper_embedded build_installer15 build_installer64e make_trollstorespawnroot
