@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Application identifier for TrollStore SpawnRoot -->
+	<key>application-identifier</key>
+	<string>com.opa334.trollstorespawnroot</string>
+	
+	<!-- Required for WiFi/Cellular policy fixes (chineseWifiFixup) -->
+	<key>com.apple.CommCenter.fine-grained</key>
+	<array>
+		<string>data-allowed-write</string>
+	</array>
+	
+	<!-- Required for spawning processes with root privileges -->
+	<key>com.apple.private.persona-mgmt</key>
+	<true/>
+	
+	<!-- Platform application entitlement for elevated privileges -->
+	<key>platform-application</key>
+	<true/>
+	
+	<!-- Disable sandbox to allow root process spawning -->
+	<key>com.apple.private.security.no-sandbox</key>
+	<true/>
+	
+	<!-- Container management for app inspection -->
+	<key>com.apple.private.security.container-manager</key>
+	<true/>
+	<key>com.apple.private.MobileContainerManager.allowed</key>
+	<true/>
+	
+	<!-- Core Services database access for app enumeration -->
+	<key>com.apple.private.coreservices.canmaplsdatabase</key>
+	<true/>
+	
+	<!-- LaunchServices database rebuild capability -->
+	<key>com.apple.lsapplicationworkspace.rebuildappdatabases</key>
+	<true/>
+	
+	<!-- Storage access for app bundles and documents -->
+	<key>com.apple.private.security.storage.AppBundles</key>
+	<true/>
+	<key>com.apple.private.security.storage.MobileDocuments</key>
+	<true/>
+	<key>com.apple.private.security.storage-exempt.heritable</key>
+	<true/>
+	
+	<!-- Application launching capabilities -->
+	<key>com.apple.springboard.launchapplications</key>
+	<true/>
+	<key>com.apple.backboardd.launchapplications</key>
+	<true/>
+	<key>com.apple.frontboard.launchapplications</key>
+	<true/>
+	
+	<!-- Process termination capability -->
+	<key>com.apple.multitasking.termination</key>
+	<true/>
+</dict>
+</plist>

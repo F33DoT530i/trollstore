@@ -1,0 +1,20 @@
+Package: com.opa334.trollstorespawnroot
+Name: TrollStore SpawnRoot
+Version: 1.0
+Architecture: iphoneos-arm
+Description: TrollStore SpawnRoot - Root Process Spawning Utility
+ TrollStore SpawnRoot is an iOS application that leverages the TrollStore
+ utilities for spawning root processes, managing entitlements, and providing
+ process enumeration capabilities. It includes WiFi/cellular fixes and 
+ comprehensive logging for debugging root operations.
+ .
+ Features:
+ - Spawn processes with root privileges
+ - Enumerate running system processes
+ - Execute arbitrary commands as root
+ - WiFi and cellular policy management
+ - iOS 14.0+ compatibility
+Maintainer: opa334
+Author: opa334
+Section: Applications
+Depends: firmware (>= 14.0)
